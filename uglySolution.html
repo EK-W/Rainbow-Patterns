@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf8" />
+		<title>Rainbow Example</title>
+		<style>
+			#canvas {
+				border: 1px solid black;
+				background-color: rgb(50%, 50%, 50%);
+			}
+		</style>
+		<script>
+
+			function linesImage(ctx) {
+				let pixelIndex = 0;
+
+				for(let b = 0; b < 256; b++) {
+					for(let g = 0; g < 256; g++) {
+				  		for(let r = 0; r < 256; r++) {
+							ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+				      
+				     		ctx.fillRect(pixelIndex % 4096, Math.floor(pixelIndex / 4096), 1, 1);
+				      		pixelIndex++;
+						}
+					}
+				}
+			}
+
+			function boxesImage(ctx) {
+				for(let x = 0; x < 4096; x++) {
+					for(let y = 0; y < 4096; y++) {
+						const xScaled = Math.floor(x / 256);
+						const yScaled = Math.floor(y / 256);
+						const dimScaled = 4096 / 256;
+						const r = (xScaled * dimScaled) + yScaled;
+						const g = x % 256;
+						const b = y % 256;
+
+						ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+
+						ctx.fillRect(x, y, 1, 1);
+					}
+				}
+			}
+
+			function shuffleArray(arr) {
+				for(let i = arr.length - 1; i > 0; i--) {
+					const randIndex = Math.floor(Math.random() * (i + 1));
+
+					const temp = arr[i];
+					arr[i] = arr[randIndex];
+					arr[randIndex] = temp;
+				}
+			}
+
+			function randomImage(ctx) {
+				const arr = [];
+
+				for(let b = 0; b < 256; b++) {
+					for(let g = 0; g < 256; g++) {
+				  		for(let r = 0; r < 256; r++) {
+				  			arr.push(`rgb(${r}, ${g}, ${b})`);
+						}
+					}
+				}
+
+				shuffleArray(arr);
+
+
+				for(let i = 0; i < arr.length; i++) {
+					// const toSwapIndex = i + Math.floor(Math.random() * (arr.length - i));
+
+
+					// ctx.fillStyle = arr[toSwapIndex];
+					ctx.fillStyle = arr[i];
+					ctx.fillRect(i % 4096, Math.floor(i / 4096), 1, 1);
+					
+					//arr[toSwapIndex] = arr[i];
+				}
+			}
+
+			function randomRedSquares(ctx) {
+				const redArr = [];
+
+				for(let i = 0; i < 256; i++) {
+					redArr.push(i);
+				}
+
+				shuffleArray(redArr);
+
+				for(let i = 0; i < 256; i++) {
+					const baseX = (i % 16) * 256;
+					const baseY = Math.floor(i / 16) * 256;
+					const r = redArr[i];
+
+					for(let j = 0; j < 256; j++) {
+						for(let k = 0; k < 256; k++) {
+							ctx.fillStyle = `rgb(${r}, ${j}, ${k})`;
+							ctx.fillRect(baseX + j, baseY + k, 1, 1);
+						}
+					}
+
+				}
+			}
+
+			function randomSquareTiles(ctx) {
+				const redArr = [];
+				const greenArr = [];
+				const blueArr = [];
+
+				for(let i = 0; i < 256; i++) {
+					redArr.push(i);
+					greenArr.push(i);
+					blueArr.push(i);
+				}
+
+				shuffleArray(redArr);
+				shuffleArray(greenArr);
+				shuffleArray(blueArr);
+
+				for(let i = 0; i < 256; i++) {
+					const baseX = (i % 16) * 256;
+					const baseY = Math.floor(i / 16) * 256;
+					const r = redArr[i];
+
+					for(let j = 0; j < 256; j++) {
+						const g = greenArr[j];
+						for(let k = 0; k < 256; k++) {
+							const b = blueArr[k];
+							ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+							ctx.fillRect(baseX + j, baseY + k, 1, 1);
+						}
+					}
+
+				}
+			}
+
+			function randomSquares(ctx) {
+				const redArr = [];
+				const greenArr = [];
+				const blueArr = [];
+
+				for(let i = 0; i < 256; i++) {
+					redArr.push(i);
+					greenArr.push(i);
+					blueArr.push(i);
+				}
+
+				shuffleArray(redArr);
+
+				for(let i = 0; i < 256; i++) {
+					const baseX = (i % 16) * 256;
+					const baseY = Math.floor(i / 16) * 256;
+					const r = redArr[i];
+
+					shuffleArray(greenArr);
+					for(let j = 0; j < 256; j++) {
+						const g = greenArr[j];
+
+						shuffleArray(blueArr);
+						for(let k = 0; k < 256; k++) {
+							const b = blueArr[k];
+							ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+							ctx.fillRect(baseX + j, baseY + k, 1, 1);
+						}
+					}
+
+				}
+			}
+
+			function getIndexInSortedArray(toFind, arr, comparator, returnIfNotFound = false) {
+				let start = 0;
+				let end = arr.length;
+
+				let pivotIndex;
+
+				while(start < end) {
+					pivotIndex = Math.floor((start + end - 1) / 2);
+
+					const compValue = comparator(arr[pivotIndex], toFind);
+
+					if(compValue === 0) {
+						return pivotIndex;
+					} else if(compValue > 0) {
+						end = pivotIndex;
+					} else { // arr[pivotIndex] < toInsert
+						start = pivotIndex + 1;
+					}
+				}
+
+				return returnIfNotFound? end : -1;
+			}
+
+			function insertIntoSortedArray(toInsert, arr, comparator) {
+				const insertIndex = getIndexInSortedArray(toInsert, arr, comparator, true);
+
+				if(insertIndex < arr.length && comparator(arr[insertIndex], toInsert) === 0) return false;
+
+				arr.splice(insertIndex, 0, toInsert);
+				return true;
+			}
+
+			class ColorChannel {
+				static RED = 0;
+				static GREEN = 1;
+				static BLUE = 2;
+				constructor(numValues) {
+					this.values = [];
+
+					for(let i = 0; i < numValues; i++) {
+						this.values.push(i);
+					}
+					this.minValue = 0;
+					this.maxValue = numValues - 1;
+				}
+				toDisplayedValue(val) {
+					const range = this.maxValue - this.minValue;
+					const distBetweenValues = range / (this.values.length - 1);
+
+					return Math.floor(val * distBetweenValues) + this.minValue;
+				}
+				setRange(minValue, maxValue) {
+					this.minValue = minValue;
+					this.maxValue = maxValue;
+					
+					// // at the end, we want this.values[0] to be minValue
+					// // and this.values[this.values.length - 1] to be maxValue
+
+					return this;
+				}
+				removeByIndex(toRemove) {
+					if(typeof toRemove === "number") {
+						this.values.splice(toRemove, 1);
+					}
+					// clone the array and sort the clone in ascending order
+					toRemove = Array.from(toRemove).sort((a, b) => a - b);
+
+					for(let i = toRemove.length - 1; i >= 0; i--) {
+						this.values.splice(toRemove[i], 1);
+					}
+
+					return this;
+				}
+				removeByValue(toRemove) {
+					if(typeof toRemove === "number") {
+						toRemove = [toRemove];
+					}
+					// clone the array and sort the clone in ascending order
+					toRemove = Array.from(toRemove).sort((a, b) => a - b);
+					
+					this.values = this.values.filter((val) => !toRemove.includes(this.toDisplayedValue(val)));
+
+					return this;
+				}
+				static getName(channelNum) {
+					switch(channelNum) {
+					case ColorChannel.RED:
+						return "red";
+					case ColorChannel.GREEN:
+						return "green";
+					case ColorChannel.BLUE:
+						return "blue";
+					default:
+						return "InvalidColorChannel";
+					}
+				}
+			}
+
+			class World {
+				constructor(canvas, rChannel, gChannel, bChannel) {
+					this.channelVals = [
+						Array.from(rChannel.values),
+						Array.from(gChannel.values),
+						Array.from(bChannel.values)
+					];
+					this.squares = [];
+					this.squaresByChannel = [[], [], []];
+					this.channelObjs = [rChannel, gChannel, bChannel];
+
+					const numColors = this.channelVals[0].length * this.channelVals[1].length * this.channelVals[2].length;
+					let width = Math.floor(Math.sqrt(numColors));
+					let height = numColors / width;
+					while(height !== Math.floor(height)) {
+						width--;
+						height = numColors / width;
+					}
+
+					this.width = width;
+					this.height = height;
+
+					this.columnsProgress = [];
+					for(let i = 0; i < this.width; i++) {
+						this.columnsProgress.push(0);
+					}
+					this.currentX = 0;
+
+					this.canvas = canvas;
+					this.ctx = canvas.getContext("2d");
+					
+					const minCanvasSize = 800;
+
+					if(this.height < minCanvasSize) {
+						const canvasHeight = minCanvasSize;
+						const canvasWidth = canvasHeight * this.width / this.height;
+						this.drawXScale = canvasWidth / this.width;
+						this.drawYScale = canvasHeight / this.height;
+
+						canvas.setAttribute("width", canvasWidth);
+						canvas.setAttribute("height", canvasHeight);
+						this.drawWithRects = true;
+					} else {
+						this.canvasPixelData = this.ctx.createImageData(width, height);
+						canvas.setAttribute("width", this.width);
+						canvas.setAttribute("height", this.height);
+						this.drawWithRects = false;
+					}
+				}
+				addSquare(square) {
+					const squareValIndexInChannelVals = getIndexInSortedArray(
+						square.constChannelValue,
+						this.channelVals[square.constChannel],
+						((a, b) => a - b)
+					);
+
+					if(squareValIndexInChannelVals === -1) {
+						console.log(square);
+						console.log(this.channelVals[square.constChannel]);
+						throw "Error: attempting to add a square with a constant channel value that is not in the pool of available values for that channel!";
+					}
+
+					// console.log(`${ColorChannel.getName(square.constChannel)}:${square.constChannelValue} is at index ${squareValIndexInChannelVals} of ${JSON.stringify(this.channelVals[square.constChannel])}`);
+
+					this.channelVals[square.constChannel].splice(squareValIndexInChannelVals, 1);
+
+					const didInsert = insertIntoSortedArray(
+						square,
+						this.squaresByChannel[square.constChannel],
+						((a, b) => a.constChannelValue - b.constChannelValue)
+					);
+
+					if(!didInsert) {
+						throw "Error: could not insert square, for some reason!";
+					}
+
+					this.squares.push(square);
+				}
+				setPixelColor(color) {
+					const x = this.currentX;
+					const y = this.columnsProgress[x];
+					const r = this.channelObjs[0].toDisplayedValue(color[0]);
+					const g = this.channelObjs[1].toDisplayedValue(color[1]);
+					const b = this.channelObjs[2].toDisplayedValue(color[2]);
+
+					if(this.drawWithRects) {
+						const fillStyle = `rgb(${r}, ${g}, ${b})`;
+						this.ctx.fillStyle = fillStyle;
+						this.ctx.fillRect(x * this.drawXScale, y * this.drawYScale, this.drawXScale, this.drawYScale);
+					} else {
+						const pixelIndex = ((y * this.width) + x) * 4;
+
+						this.canvasPixelData.data[pixelIndex] = r;
+						this.canvasPixelData.data[pixelIndex + 1] = g;
+						this.canvasPixelData.data[pixelIndex + 2] = b;
+						this.canvasPixelData.data[pixelIndex + 3] = 255;
+					}
+					
+					// const fs = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+					// this.ctx.fillStyle = fs;
+					// this.ctx.fillRect(x, y, 1, 1);
+
+					//console.log(`Filled rect ${x},${y},1,1 with color ${this.ctx.fillStyle}`);
+
+					this.columnsProgress[x]++;
+				}
+				updateImage() {
+					if(this.drawWithRects) {
+
+					} else {
+						this.ctx.putImageData(this.canvasPixelData, 0, 0);
+					}
+				}
+				draw() {
+					for(let i = 0; i < this.squares.length; i++) {
+						this.squares[i].draw(this);
+					}
+					this.updateImage();
+				}
+				toOpenScadCode() {
+					let ret = (
+						`module square(rVals, gVals, bVals) {\n`
+						+ `\tfor(r = rVals) for(g = gVals) for(b = bVals) translate([r, g, b]) cube(1);\n`
+						+ `}\n`
+					);
+
+					for(let i = 0; i < this.squares.length; i++) {
+						const sq = this.squares[i];
+
+						const channelVals = [0, 0, 0];
+						channelVals[sq.constChannel] = [sq.constChannelValue];
+						channelVals[sq.colChannel] = sq.getAllColumnVals();
+						channelVals[sq.rowChannel] = sq.getAllRowVals();
+
+						ret += `square(${JSON.stringify(channelVals[0])}, ${JSON.stringify(channelVals[1])}, ${JSON.stringify(channelVals[2])});\n`;
+					}
+
+					return ret;
+				}
+			}
+
+			class Square {
+				constructor(world, majorChannel, majorValue, transposed, colsFlipped, rowsFlipped) {
+					this.constChannel = majorChannel;
+					this.constChannelValue = majorValue;
+					
+					// These values are numerical representations of which channel
+					// will have its gradient on the x and y axes. a column channel of 0, for example,
+					// means that there will be a red gradient from left to right.
+					this.colChannel = (majorChannel + (transposed? 2 : 1)) % 3;
+					this.colsFlipped = colsFlipped;
+					this.extraCols = [];
+
+					this.rowChannel = (majorChannel + (transposed? 1 : 2)) % 3;
+					this.rowsFlipped = rowsFlipped;
+					this.extraRows = [];
+
+					this.world = world;
+				}
+				get totalNumCols() {
+					return this.world.channelVals[this.colChannel].length + this.extraCols.length;
+				}
+				get totalNumRows() {
+					return this.world.channelVals[this.rowChannel].length + this.extraRows.length;
+				}
+				hasIntersectionWithSquare(otherSquare) {
+					if(otherSquare.constChannel === this.constChannel) {
+						return false;
+					} else if(otherSquare.constChannel === this.colChannel) {
+						return getIndexInSortedArray(otherSquare.constChannelValue, this.extraCols, (a, b) => a - b) !== -1;
+					} else {
+						return getIndexInSortedArray(otherSquare.constChannelValue, this.extraRows, (a, b) => a - b) !== -1;
+					}
+				}
+				addIntersectionWithSquare(otherSquare) {
+					if(otherSquare.constChannel === this.constChannel) {
+						throw "Error: cannot add the intersection of two squares with the same constant channel!";
+					} else if(!otherSquare.hasIntersectionWithSquare(this)){
+						insertIntoSortedArray(
+							otherSquare.constChannelValue,
+							(otherSquare.constChannel === this.colChannel)? this.extraCols : this.extraRows,
+							(a, b) => a - b
+						);
+					}
+
+
+					// const colVal = vals[this.colChannel];
+					// const rowVal = vals[this.rowChannel];
+
+					// insertIntoSortedArray(colVal, this.extraCols, (a, b) => a - b);
+					// insertIntoSortedArray(rowVal, this.extraRows, (a, b) => a - b);
+
+					// if(!this.extraCols.has(colVal)) {
+					// 	this.extraCols.add(colVal);
+					// }
+
+					// if(!this.extraRows.has(rowVal)) {
+					// 	this.extraRows.add(rowVal);
+					// }
+				}
+				static placeMissingColors(squaresByChannel) {
+					const currentChannelSquares = [];
+					for(let rSqIndex = 0; rSqIndex < squaresByChannel[0].length; rSqIndex++) {
+						currentChannelSquares[0] = squaresByChannel[0][rSqIndex];
+						
+						for(let gSqIndex = 0; gSqIndex < squaresByChannel[1].length; gSqIndex++) {
+							currentChannelSquares[1] = squaresByChannel[1][gSqIndex];
+							
+							for(let bSqIndex = 0; bSqIndex < squaresByChannel[2].length; bSqIndex++) {
+								currentChannelSquares[2] = squaresByChannel[2][bSqIndex];
+
+								//const strongestSquare = 0;
+								const strongestIndex = Math.floor(Math.random() * 3);
+								const middleIndexOffset = Math.floor(Math.random() * 2) + 1;
+								const weakestIndexOffset = 3 - middleIndexOffset;
+								//currentChannelSquares[Math.floor(Math.random() * 3)].addChannelVals(extraChannelVals);
+								const strongestSquare = currentChannelSquares[strongestIndex];
+								const middleSquare = currentChannelSquares[(strongestIndex + middleIndexOffset) % 3];
+								const weakestSquare = currentChannelSquares[(strongestIndex + weakestIndexOffset) % 3];
+
+								strongestSquare.addIntersectionWithSquare(middleSquare);
+								strongestSquare.addIntersectionWithSquare(weakestSquare);
+								middleSquare.addIntersectionWithSquare(weakestSquare);
+
+								// strongestSquare.addChannelVal(middleSquare.constChannel, middleSquare.constChannelValue);
+								// strongestSquare.addChannelVal(weakestSquare.constChannel, weakestSquare.constChannelValue);
+								// middleSquare.addChannelVal(weakestSquare.constChannel, weakestSquare.constChannelValue);
+							}
+						}
+					}
+				}
+
+				draw(world) {
+					const commonColVals = world.channelVals[this.colChannel];
+					const extraColVals = Array.from(this.extraCols);
+
+					const commonRowVals = world.channelVals[this.rowChannel];
+					const extraRowVals = this.extraRows;
+					//const rowVals = mergeArr(commonRowVals, extraRowVals, this.rowsFlipped);
+					//const totalRowLength = commonRowVals.length + extraRowVals.length;
+
+					const columnsLeftToDraw = [];
+					for(let col of mergeIterator(commonColVals, this.extraCols, this.colsFlipped)) {
+						columnsLeftToDraw.push({
+							colChannelValue: col,
+							rowIter: mergeIterator(commonRowVals, extraRowVals, this.rowsFlipped)
+						});
+					}
+					//console.log(columnsLeftToDraw.length);
+
+					while(columnsLeftToDraw.length > 0) {
+						for(let colIndex = 0; colIndex < columnsLeftToDraw.length; colIndex++) {
+							const col = columnsLeftToDraw[colIndex];
+
+							let rowIterRet;
+
+							do {
+								if(world.columnsProgress[world.currentX] >= world.height) break;
+
+								rowIterRet = col.rowIter.next();
+								if(rowIterRet.done && rowIterRet.value === undefined) {
+									break;
+								} 
+
+								const color = [0, 0, 0];
+								color[this.constChannel] = this.constChannelValue;
+								color[this.colChannel] = col.colChannelValue;
+								color[this.rowChannel] = rowIterRet.value;
+
+								world.setPixelColor(color);
+							} while(!rowIterRet.done)
+
+							world.currentX = (world.currentX + 1) % world.width;
+
+							if(rowIterRet === undefined || rowIterRet.done) {
+								columnsLeftToDraw.splice(colIndex, 1);
+								colIndex--;
+							}
+						}
+					}
+				}
+				getAllColumnVals() {
+					const commonColVals = this.world.channelVals[this.colChannel];
+					const extraColVals = Array.from(this.extraCols);
+
+					return Array.from(mergeIterator(commonColVals, extraColVals));
+				}
+				getAllRowVals() {
+					const commonRowVals = this.world.channelVals[this.rowChannel];
+					const extraRowVals = Array.from(this.extraRows);
+
+					return Array.from(mergeIterator(commonRowVals, extraRowVals));
+				}
+				toString() {
+					const constChannelName = ColorChannel.getName(this.constChannel);
+					const colChannelName = ColorChannel.getName(this.colChannel);
+					const rowChannelName = ColorChannel.getName(this.rowChannel);
+					return `Square(${this.constChannel}:${constChannelName}=${this.constChannelValue}, ${this.totalNumCols} ${colChannelName} columns, ${this.totalNumRows} ${rowChannelName} rows)`;
+				}
+				static createRandomSquare(world) {
+					let constChannel = Math.floor(Math.random() * 3);
+
+					// protect against chosing an empty const channel
+					for(let i = 0; world.channelVals[constChannel].length === 0 && i < 2; i++) {
+						constChannel = (constChannel + 1) % 3;
+					}
+
+					const channelArr = world.channelVals[constChannel];
+
+					if(channelArr.length === 0) {
+						throw "Error: attempting to create squares when the supply of channel values has been completely exhausted!";
+					}
+
+					const constChannelValue = channelArr[Math.floor(Math.random() * channelArr.length)];
+					const transposed = Math.floor(Math.random() * 2) === 0;
+					const colsFlipped = Math.floor(Math.random() * 2) === 0;
+					const rowsFlipped = Math.floor(Math.random() * 2) === 0;
+
+					return new Square(
+						world,
+						constChannel,
+						constChannelValue,
+						transposed,
+						colsFlipped,
+						rowsFlipped
+					);
+				}
+			}
+
+
+			function* mergeIterator(a, b, backwards = false) {
+				if(backwards) {
+					let aIndex = a.length - 1;
+					let bIndex = b.length - 1;
+
+					for(let i = 0; i < a.length + b.length; i++) {
+						if(a[aIndex] > b[bIndex] || bIndex <= 0) {
+							yield a[aIndex];
+							aIndex--;
+						} else {
+							yield b[bIndex];
+							bIndex--;
+						}
+					}
+				} else {
+					let aIndex = 0;
+					let bIndex = 0;
+
+					for(let i = 0; i < a.length + b.length; i++) {
+						if(a[aIndex] < b[bIndex] || bIndex >= b.length) {
+							yield a[aIndex];
+							aIndex++;
+						} else {
+							yield b[bIndex];
+							bIndex++;
+						}
+					}
+				}
+				
+			}
+
+			function randomAxisSquares(ctx) {
+				const channelArrs = [[], [], []];
+				const squareAxes = [];
+				const squareValues = [];
+
+				const squares = [];
+
+
+				const yBases = [];
+				//const progressesAtEachX = [];
+
+				for(let i = 0; i < 256; i++) {
+					channelArrs.forEach(arr => arr.push(i));
+					//progressesAtEachX.push(0);
+				}
+
+				for(let i = 0; i < 4096; i++) {
+					yBases.push(0);
+				}
+
+				console.log(yBases);
+
+				for(let i = 0; i < 256; i++) {
+					const squareChannelIndex = Math.floor(Math.random() * 3);
+					const toRemoveFrom = channelArrs[squareChannelIndex];
+					const indexToRemove = Math.floor(Math.random() * toRemoveFrom.length);
+
+					const minorChannels = [(squareChannelIndex + 1) % 3, (squareChannelIndex + 2) % 3];
+
+					const squareObj = {
+						majorChannel: squareChannelIndex,
+						majorValue: toRemoveFrom[indexToRemove],
+						includedMissingValues: [[], [], []],
+						axisChannels: (Math.floor(Math.random() * 2) === 0)? {
+							x: (squareChannelIndex + 1) % 3,
+							y: (squareChannelIndex + 2) % 3
+						} : {
+							x: (squareChannelIndex + 2) % 3,
+							y: (squareChannelIndex + 1) % 3
+						},
+						axisBackwards: {
+							x: (Math.floor(Math.random() * 2) === 0),
+							y: (Math.floor(Math.random() * 2) === 0)
+						}
+					};
+
+					squares.push(squareObj);
+
+					toRemoveFrom.splice(indexToRemove, 1);
+					// missingChannelVals[squareChannelIndex].push(indexToRemove);
+				}
+
+				for(let i = 0; i < squares.length; i++) {
+					for(let j = i + 1; j < squares.length; j++) {
+						if(squares[i].majorChannel === squares[j].majorChannel) {
+							continue;
+						}
+
+						// The more powerful square is the one that can contain colors
+						// with the less powerful square's major channel value.
+						let morePowerfulSquare;
+						let lessPowerfulSquare;
+						if(Math.floor(Math.random() * 2) === 0) {
+							morePowerfulSquare = squares[i];
+							lessPowerfulSquare = squares[j];
+						} else {
+							morePowerfulSquare = squares[j];
+							lessPowerfulSquare = squares[i];	
+						}
+
+						morePowerfulSquare.includedMissingValues[lessPowerfulSquare.majorChannel].push(lessPowerfulSquare.majorValue);
+					}
+				}
+
+				console.log(channelArrs);
+				console.log(squares);
+
+				let currentX = 0;
+				for(let squareIndex = 0; squareIndex < squares.length; squareIndex++) {
+					const square = squares[squareIndex];
+
+					const xChannelBaseArr = channelArrs[square.axisChannels.x];
+					const xChannelExtraVals = square.includedMissingValues[square.axisChannels.x].sort((a, b) => a - b);
+
+					const yChannelBaseArr = channelArrs[square.axisChannels.y];
+					const yChannelExtraVals = square.includedMissingValues[square.axisChannels.y].sort((a, b) => a - b);
+					const yChannelLength = yChannelBaseArr.length + yChannelExtraVals.length;
+
+					const columnsToDraw = [];
+
+					for(let xChannelVal of mergeIterator(xChannelBaseArr, xChannelExtraVals, square.axisBackwards.x)) {
+						columnsToDraw.push({ channelVal: xChannelVal, rowsDrawn: 0 });
+					}
+
+					while(columnsToDraw.length > 0) {
+						for(let colIndex = 0; colIndex < columnsToDraw.length; colIndex++) {
+							const col = columnsToDraw[colIndex];
+
+							for(let yChannelVal of mergeIterator(yChannelBaseArr, yChannelExtraVals, square.axisBackwards.y)) {
+								if(yBases[currentX] >= 4096) break;
+
+								const channels = [0, 0, 0];
+								channels[square.majorChannel] = square.majorValue;
+								channels[square.axisChannels.x] = col.channelVal;
+								channels[square.axisChannels.y] = yChannelVal;
+
+								ctx.fillStyle = `rgb(${channels[0]}, ${channels[1]}, ${channels[2]})`;
+
+								ctx.fillRect(currentX, yBases[currentX], 1, 1);
+
+								col.rowsDrawn++;
+								yBases[currentX]++;
+							}
+
+							if(col.rowsDrawn >= yChannelLength) {
+								columnsToDraw.splice(colIndex, 1);
+								colIndex--;
+							}
+
+							currentX = (currentX + 1) % 4096;
+						}
+					}
+				}
+
+				// let startX = 0;
+				// let lastMinX = 0;
+				// let pixelCount = 0;
+				// let currentX = 0;
+				// for(let i = 0; i < squares.length; i++) {
+				// 	const majorAxisIndex = squareAxes[i];
+				// 	const majorChannelValue = squareValues[i];
+
+				// 	const minorChannelArr0 = channelArrs[(majorAxisIndex + 1) % 3];
+				// 	const minorChannelArr1 = channelArrs[(majorAxisIndex + 2) % 3];
+
+				// 	//console.log(`Starting next cube at x=${nextStartX}, y=${yBases[nextStartX]}`);
+				// 	const columnsToDraw = [];
+				// 	for(let j = 0; j < minorChannelArr0.length; j++) {
+				// 		columnsToDraw.push({ channelIndex: j, rowsDrawn: 0 });
+				// 	}
+				// 	// progressesAtEachX.fill(0, 0, minorComponentArr1.length);
+				// 	// let numUnfinishedXs = minorComponentArr1.length;
+				// 	// startX = lastMinX + 1;
+				// 	// lastMinX = Number.POSITIVE_INFINITY;
+
+				// 	while(columnsToDraw.length > 0) {
+				// 		for(let colIndex = 0; colIndex < columnsToDraw.length; colIndex++) {
+				// 			const col = columnsToDraw[colIndex];
+
+				// 			for(let squareY = col.rowsDrawn; squareY < minorChannelArr1.length; squareY++) {
+				// 				if(yBases[currentX] >= 4096) break;
+
+				// 				const channels = [0, 0, 0];
+				// 				channels[majorAxisIndex] = majorChannelValue;
+				// 				channels[(majorAxisIndex + 1) % 3] = minorChannelArr0[col.channelIndex];
+				// 				channels[(majorAxisIndex + 2) % 3] = minorChannelArr1[squareY];
+
+				// 				ctx.fillStyle = `rgb(${channels[0]}, ${channels[1]}, ${channels[2]})`;
+
+				// 				ctx.fillRect(currentX, yBases[currentX], 1, 1);
+
+				// 				// if(pixelCount % Math.floor(4096 * 4096 / 100) === 0) {
+
+				// 				// }
+
+				// 				col.rowsDrawn++;
+				// 				yBases[currentX]++;
+				// 				pixelCount++;
+				// 			}
+
+				// 			if(col.rowsDrawn >= minorChannelArr1.length) {
+				// 				//The column has been completed! Remove it from the toDraw array!
+				// 				columnsToDraw.splice(colIndex, 1);
+				// 				colIndex--;
+				// 			}
+
+				// 			currentX = (currentX + 1) % 4096;
+				// 		}
+				// 	}
+				// }
+			}
+
+			window.addEventListener("load", function() {
+				const canvas = document.getElementById('canvas');
+				const ctx = canvas.getContext("2d");
+
+				const channelSize = 16;
+
+				const world = new World(canvas,
+					new ColorChannel(channelSize).setRange(0, 255),
+					new ColorChannel(channelSize).setRange(0, 255),
+					new ColorChannel(channelSize).setRange(0, 255)
+				);
+
+				while(!world.channelVals.some((vals)=>vals.length === 0)) {
+					const newSquare = Square.createRandomSquare(world);
+					world.addSquare(newSquare);
+				}
+
+				// for(let i = 0; i < channelSize; i++) {
+				// 	//console.log(JSON.stringify(world.channelVals));
+				// 	const newSquare = Square.createRandomSquare(world);
+				// 	//console.log(`Adding ${newSquare}`);
+				// 	world.addSquare(newSquare);
+				// }
+				// world.addSquare(new Square(
+				// 	0,
+				// 	17,
+				// 	false,
+				// 	false,
+				// 	false
+				// ));
+				// world.addSquare(new Square(
+				// 	1,
+				// 	34,
+				// 	false,
+				// 	false,
+				// 	false
+				// ));
+				// world.addSquare(new Square(
+				// 	2,
+				// 	51,
+				// 	false,
+				// 	false,
+				// 	false
+				// ));
+				Square.placeMissingColors(world.squaresByChannel);
+
+				console.log("Starting!");
+
+				world.draw();
+
+				//randomAxisSquares(ctx);
+				console.log("Done!");
+				console.log(world);
+
+				// for(let i = 0; i < world.squares.length; i++) {
+				// 	const sq = world.squares[i];
+				// 	console.log(`${i}: ${sq}`);
+				// 	console.log(`| ${ColorChannel.getName(sq.colChannel)}\t${sq.getAllColumnVals()}`);
+				// 	console.log(`| ${ColorChannel.getName(sq.rowChannel)}\t${sq.getAllRowVals()}`);
+				// }
+
+				//console.log(Object.entries(world.everySingleColor).filter(([key, value]) => value).map(([key, value]) => key));
+			});
+		</script>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+	</body>
+</html>
